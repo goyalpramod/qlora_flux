@@ -153,6 +153,12 @@ def parse_args(input_args=None):
         help="Path to pretrained model or model identifier from huggingface.co/models.",
     )
     parser.add_argument(
+        "--dataset_name",
+        type=str,
+        default="Norod78/Yarn-art-style",
+        help="Then name of the dataset to get from HF"
+    )
+    parser.add_argument(
         "--quantized_model_path",
         type=str,
         default=None,
@@ -900,7 +906,7 @@ def main(args):
     # Dataset and DataLoaders creation:
     train_dataset = DreamBoothDataset(
         data_df_path=args.data_df_path,
-        dataset_name="Norod78/Yarn-art-style", #! This should be passed as an argument 
+        dataset_name=args.dataser_name,
         size=args.resolution,
         max_sequence_length=args.max_sequence_length,
         center_crop=args.center_crop,
@@ -1014,35 +1020,6 @@ def main(args):
         disable=not accelerator.is_local_main_process,
     )
 
-    # def get_sigmas(timesteps, n_dim=4, dtype=torch.float32):
-    #     sigmas = noise_scheduler_copy.sigmas.to(device=accelerator.device, dtype=dtype)
-    #     schedule_timesteps = noise_scheduler_copy.timesteps.to(accelerator.device)
-    #     timesteps = timesteps.to(accelerator.device)
-    #     step_indices = [(schedule_timesteps == t).nonzero().item() for t in timesteps]
-
-    #     sigma = sigmas[step_indices].flatten()
-    #     while len(sigma.shape) < n_dim:
-    #         sigma = sigma.unsqueeze(-1)
-    #     return sigma
-    #! first (works)
-    # def get_sigmas(timesteps, n_dim=4, dtype=torch.float32):
-    #     sigmas = noise_scheduler_copy.sigmas.to(device=accelerator.device, dtype=dtype)
-    #     schedule_timesteps = noise_scheduler_copy.timesteps.to(accelerator.device)
-    #     timesteps = timesteps.to(accelerator.device)
-        
-    #     # Using masked select for safer indexing
-    #     indices = torch.zeros_like(timesteps, dtype=torch.long)
-    #     for i, t in enumerate(timesteps):
-    #         mask = (schedule_timesteps == t)
-    #         if mask.any():
-    #             indices[i] = mask.nonzero().item()
-        
-    #     sigma = sigmas[indices].flatten()
-    #     # Reshape using repeat if needed
-    #     if n_dim > 1:
-    #         sigma = sigma.view(-1, *([1] * (n_dim - 1)))
-    #     return sigma
-    #! second (works, slightly faster)
     def get_sigmas(timesteps, n_dim=4, dtype=torch.float32):
         sigmas = noise_scheduler_copy.sigmas.to(device=accelerator.device, dtype=dtype)
         schedule_timesteps = noise_scheduler_copy.timesteps.to(accelerator.device)
@@ -1056,14 +1033,6 @@ def main(args):
         if n_dim > 1:
             sigma = sigma.view(-1, *([1] * (n_dim - 1)))
         return sigma
-    #! This breaks it 
-    #! Improved version
-    # def get_sigmas(timesteps, n_dim=4, dtype=torch.float32):
-    #     sigmas = noise_scheduler_copy.sigmas.to(device=accelerator.device, dtype=dtype)
-    #     schedule_timesteps = noise_scheduler_copy.timesteps.to(accelerator.device)
-    #     step_indices = torch.bucketize(timesteps.to(accelerator.device), schedule_timesteps)
-    #     sigma = sigmas[step_indices].flatten()
-    #     return sigma.view(*sigma.shape, *([1] * (n_dim - sigma.ndim)))
 
     for epoch in range(first_epoch, args.num_train_epochs):
         transformer.train()
