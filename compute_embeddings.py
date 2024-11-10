@@ -64,7 +64,7 @@ def compute_embeddings(pipeline, prompts, max_sequence_length):
 
 
 def run(args):
-    dataset = load_dataset("Norod78/Yarn-art-style", split="train")
+    dataset = load_dataset(args.dataset_name, split="train")
     image_prompts = {generate_image_hash(sample["image"]): sample["text"] for sample in dataset}
     all_prompts = list(image_prompts.values())
     print(f"{len(all_prompts)=}")
@@ -95,6 +95,12 @@ def run(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--dataset_name",
+        type=str,
+        default="Norod78/Yarn-art-style",
+        help="Then name of the dataset to get from HF"
+    )
     parser.add_argument(
         "--max_sequence_length",
         type=int,
