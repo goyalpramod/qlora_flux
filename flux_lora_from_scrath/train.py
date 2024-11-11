@@ -412,10 +412,11 @@ def main(args):
     # Load scheduler and models
     #! BUILD
     #!$$$
+    #! from pretrained just loads the config of the model here, no need to worry about it.
     noise_scheduler = FlowMatchEulerDiscreteScheduler.from_pretrained(
         args.pretrained_model_name_or_path, subfolder="scheduler"
     )
-    noise_scheduler_copy = copy.deepcopy(noise_scheduler)
+    noise_scheduler_copy = copy.deepcopy(noise_scheduler) #! Why a copy?
     vae = AutoencoderKL.from_pretrained(
         args.pretrained_model_name_or_path,
         subfolder="vae",
