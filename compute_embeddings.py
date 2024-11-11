@@ -35,7 +35,7 @@ def generate_image_hash(image):
 
 
 def load_flux_dev_pipeline():
-    id = "black-forest-labs/FLUX.1-dev"
+    id = "FLUX.1-dev"
     text_encoder = T5EncoderModel.from_pretrained(id, subfolder="text_encoder_2", load_in_8bit=True, device_map="auto")
     pipeline = FluxPipeline.from_pretrained(
         id, text_encoder_2=text_encoder, transformer=None, vae=None, device_map="balanced"
